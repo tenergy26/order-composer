@@ -80,15 +80,6 @@ const ORDERS = [
     wait: 5,
     color: "#ffd45e",
   },
-  {
-    id: "tactical-link",
-    name: "タクティカルリンク",
-    type: "支援",
-    icon: "LK",
-    duration: 45,
-    wait: 9,
-    color: "#61ddce",
-  },
 ];
 
 const MAX_ORDERS = 8;
