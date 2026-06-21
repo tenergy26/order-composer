@@ -84,14 +84,20 @@ const ORDERS = [
 
 const MAX_ORDERS = 8;
 const MATCH_DURATION_SECONDS = 15 * 60;
+const LONG_PRESS_DELAY_MS = 450;
+const LONG_PRESS_MOVE_TOLERANCE = 10;
 const STORAGE_KEY = "order-composer-sequence-v1";
-const categories = ["すべて", ...new Set(ORDERS.map((order) => order.type)), "その他"];
+const categories = [
+  "すべて",
+  ...new Set([...ORDERS.map((order) => order.type), "その他"]),
+];
 
 const state = {
   selectedIds: loadInitialSequence(),
   filter: "すべて",
   query: "",
   draggedId: null,
+  touchDrag: null,
 };
 
 const elements = {
@@ -226,6 +232,11 @@ function renderSequence() {
         item.addEventListener("dragover", handleDragOver);
         item.addEventListener("dragleave", handleDragLeave);
         item.addEventListener("drop", handleDrop);
+        item.addEventListener("touchstart", handleTouchStart, { passive: true });
+        item.addEventListener("touchmove", handleTouchMove, { passive: false });
+        item.addEventListener("touchend", handleTouchEnd);
+        item.addEventListener("touchcancel", cancelTouchDrag);
+        item.addEventListener("contextmenu", handleSequenceContextMenu);
         return item;
       }),
     );
@@ -293,15 +304,124 @@ function handleDrop(event) {
   event.preventDefault();
   const targetId = event.currentTarget.dataset.id;
   event.currentTarget.classList.remove("drag-over");
-  if (!state.draggedId || targetId === state.draggedId) return;
+  reorderOrders(state.draggedId, targetId);
+}
 
+function reorderOrders(draggedId, targetId) {
+  if (!draggedId || !targetId || targetId === draggedId) return;
   const reordered = [...state.selectedIds];
-  const fromIndex = reordered.indexOf(state.draggedId);
+  const fromIndex = reordered.indexOf(draggedId);
   const targetIndex = reordered.indexOf(targetId);
+  if (fromIndex === -1 || targetIndex === -1) return;
+
   reordered.splice(fromIndex, 1);
-  reordered.splice(targetIndex, 0, state.draggedId);
+  reordered.splice(targetIndex, 0, draggedId);
   state.selectedIds = reordered;
   render();
+}
+
+function handleTouchStart(event) {
+  if (event.touches.length !== 1 || event.target.closest(".remove-button")) return;
+
+  cancelTouchDrag();
+  const touch = event.touches[0];
+  const item = event.currentTarget;
+  const touchDrag = {
+    id: item.dataset.id,
+    identifier: touch.identifier,
+    startX: touch.clientX,
+    startY: touch.clientY,
+    targetId: item.dataset.id,
+    active: false,
+    item,
+    timer: null,
+  };
+
+  touchDrag.timer = window.setTimeout(() => {
+    if (state.touchDrag !== touchDrag) return;
+    touchDrag.active = true;
+    item.classList.add("touch-dragging");
+    navigator.vibrate?.(30);
+  }, LONG_PRESS_DELAY_MS);
+
+  state.touchDrag = touchDrag;
+}
+
+function handleTouchMove(event) {
+  const touchDrag = state.touchDrag;
+  if (!touchDrag) return;
+
+  const touch = [...event.touches].find(
+    (currentTouch) => currentTouch.identifier === touchDrag.identifier,
+  );
+  if (!touch) return;
+
+  if (!touchDrag.active) {
+    const movedX = Math.abs(touch.clientX - touchDrag.startX);
+    const movedY = Math.abs(touch.clientY - touchDrag.startY);
+    if (
+      movedX > LONG_PRESS_MOVE_TOLERANCE ||
+      movedY > LONG_PRESS_MOVE_TOLERANCE
+    ) {
+      cancelTouchDrag();
+    }
+    return;
+  }
+
+  event.preventDefault();
+  const targetItem = document
+    .elementFromPoint(touch.clientX, touch.clientY)
+    ?.closest(".sequence-item");
+
+  document
+    .querySelectorAll(".sequence-item.drag-over")
+    .forEach((item) => item.classList.remove("drag-over"));
+
+  touchDrag.targetId = touchDrag.id;
+  if (targetItem && targetItem.dataset.id !== touchDrag.id) {
+    targetItem.classList.add("drag-over");
+    touchDrag.targetId = targetItem.dataset.id;
+  }
+}
+
+function handleTouchEnd(event) {
+  const touchDrag = state.touchDrag;
+  if (!touchDrag) return;
+
+  const ended = [...event.changedTouches].some(
+    (touch) => touch.identifier === touchDrag.identifier,
+  );
+  if (!ended) return;
+
+  const { active, id, targetId } = touchDrag;
+  clearTouchDragState();
+  if (active) {
+    event.preventDefault();
+    reorderOrders(id, targetId);
+  }
+}
+
+function cancelTouchDrag() {
+  if (!state.touchDrag) return;
+  clearTouchDragState();
+}
+
+function clearTouchDragState() {
+  const touchDrag = state.touchDrag;
+  if (!touchDrag) return;
+
+  window.clearTimeout(touchDrag.timer);
+  touchDrag.item.classList.remove("touch-dragging");
+  document
+    .querySelectorAll(".sequence-item.drag-over")
+    .forEach((item) => item.classList.remove("drag-over"));
+  state.touchDrag = null;
+}
+
+function handleSequenceContextMenu(event) {
+  if (state.touchDrag?.active) {
+    event.preventDefault();
+  }
 }
 
 function saveSequence() {

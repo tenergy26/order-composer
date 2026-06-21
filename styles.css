@@ -489,6 +489,8 @@ h2 {
     linear-gradient(90deg, color-mix(in srgb, var(--item-color), transparent 91%), transparent 50%),
     rgba(16, 19, 30, 0.94);
   cursor: grab;
+  -webkit-touch-callout: none;
+  user-select: none;
   transition:
     opacity 140ms ease,
     transform 140ms ease,
@@ -504,8 +506,17 @@ h2 {
   transform: scale(0.99);
 }
 
+.sequence-item.touch-dragging {
+  z-index: 2;
+  border-color: var(--item-color);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  cursor: grabbing;
+  transform: scale(1.02);
+}
+
 .sequence-item.drag-over {
   border-color: var(--item-color);
+  transform: translateY(3px);
 }
 
 .sequence-index {
