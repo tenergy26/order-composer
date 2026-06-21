@@ -531,11 +531,30 @@ h2 {
 }
 
 .sequence-index {
+  display: grid;
+  gap: 2px;
+  place-items: center;
+  align-self: stretch;
+  padding: 4px 0;
+  border-radius: 8px;
   color: var(--item-color);
+  cursor: grab;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.77rem;
   font-weight: 800;
   text-align: center;
+  touch-action: none;
+}
+
+.sequence-index:active {
+  background: color-mix(in srgb, var(--item-color), transparent 90%);
+  cursor: grabbing;
+}
+
+.drag-grip {
+  color: #71798d;
+  font-size: 0.8rem;
+  line-height: 1;
 }
 
 .sequence-info {
@@ -698,7 +717,7 @@ footer {
   .sequence-item {
     grid-template-columns: 30px 1fr auto;
     gap: 7px;
-    touch-action: none;
+    touch-action: pan-y;
   }
 
   .time-chip {

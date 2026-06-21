@@ -215,7 +215,14 @@ function renderSequence() {
         item.dataset.id = order.id;
         item.style.setProperty("--item-color", order.color);
         item.innerHTML = `
-          <div class="sequence-index">${String(index + 1).padStart(2, "0")}</div>
+          <div
+            class="sequence-index"
+            role="button"
+            aria-label="${order.name}を長押しして並べ替え"
+          >
+            <span>${String(index + 1).padStart(2, "0")}</span>
+            <span class="drag-grip" aria-hidden="true">⠿</span>
+          </div>
           <div class="sequence-info">
             <strong>${order.name}</strong>
             <small>${order.type} · 効果 ${order.duration}秒 · 待機 ${order.wait}秒</small>
@@ -232,10 +239,11 @@ function renderSequence() {
         item.addEventListener("dragover", handleDragOver);
         item.addEventListener("dragleave", handleDragLeave);
         item.addEventListener("drop", handleDrop);
-        item.addEventListener("touchstart", handleTouchStart, { passive: false });
-        item.addEventListener("touchmove", handleTouchMove, { passive: false });
-        item.addEventListener("touchend", handleTouchEnd);
-        item.addEventListener("touchcancel", cancelTouchDrag);
+        const dragHandle = item.querySelector(".sequence-index");
+        dragHandle.addEventListener("touchstart", handleTouchStart, { passive: false });
+        dragHandle.addEventListener("touchmove", handleTouchMove, { passive: false });
+        dragHandle.addEventListener("touchend", handleTouchEnd);
+        dragHandle.addEventListener("touchcancel", cancelTouchDrag);
         item.addEventListener("contextmenu", handleSequenceContextMenu);
         item.addEventListener("selectstart", preventSequenceSelection);
         return item;
@@ -322,12 +330,12 @@ function reorderOrders(draggedId, targetId) {
 }
 
 function handleTouchStart(event) {
-  if (event.touches.length !== 1 || event.target.closest(".remove-button")) return;
+  if (event.touches.length !== 1) return;
 
   event.preventDefault();
   cancelTouchDrag();
   const touch = event.touches[0];
-  const item = event.currentTarget;
+  const item = event.currentTarget.closest(".sequence-item");
   const touchDrag = {
     id: item.dataset.id,
     identifier: touch.identifier,
