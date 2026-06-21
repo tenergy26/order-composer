@@ -232,7 +232,7 @@ function renderSequence() {
         item.addEventListener("dragover", handleDragOver);
         item.addEventListener("dragleave", handleDragLeave);
         item.addEventListener("drop", handleDrop);
-        item.addEventListener("touchstart", handleTouchStart, { passive: true });
+        item.addEventListener("touchstart", handleTouchStart, { passive: false });
         item.addEventListener("touchmove", handleTouchMove, { passive: false });
         item.addEventListener("touchend", handleTouchEnd);
         item.addEventListener("touchcancel", cancelTouchDrag);
@@ -324,6 +324,7 @@ function reorderOrders(draggedId, targetId) {
 function handleTouchStart(event) {
   if (event.touches.length !== 1 || event.target.closest(".remove-button")) return;
 
+  event.preventDefault();
   cancelTouchDrag();
   const touch = event.touches[0];
   const item = event.currentTarget;

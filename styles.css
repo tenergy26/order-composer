@@ -489,9 +489,9 @@ h2 {
     linear-gradient(90deg, color-mix(in srgb, var(--item-color), transparent 91%), transparent 50%),
     rgba(16, 19, 30, 0.94);
   cursor: grab;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
   touch-action: pan-y;
   transition:
     opacity 140ms ease,
@@ -502,10 +502,10 @@ h2 {
 .sequence-item *,
 .sequence-item *::before,
 .sequence-item *::after {
-  -webkit-touch-callout: none;
-  -webkit-user-drag: none;
-  -webkit-user-select: none;
-  user-select: none;
+  -webkit-touch-callout: none !important;
+  -webkit-user-drag: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
 }
 
 .sequence-item:active {
@@ -698,6 +698,7 @@ footer {
   .sequence-item {
     grid-template-columns: 30px 1fr auto;
     gap: 7px;
+    touch-action: none;
   }
 
   .time-chip {
