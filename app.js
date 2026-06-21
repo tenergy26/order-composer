@@ -83,6 +83,7 @@ const ORDERS = [
 ];
 
 const MAX_ORDERS = 8;
+const MATCH_DURATION_SECONDS = 15 * 60;
 const STORAGE_KEY = "order-composer-sequence-v1";
 const categories = ["すべて", ...new Set(ORDERS.map((order) => order.type)), "その他"];
 
@@ -100,7 +101,7 @@ const elements = {
   searchInput: document.querySelector("#search-input"),
   catalogCount: document.querySelector("#catalog-count"),
   selectedCount: document.querySelector("#selected-count"),
-  totalTime: document.querySelector("#total-time"),
+  remainingTime: document.querySelector("#remaining-time"),
   clearButton: document.querySelector("#clear-button"),
   saveButton: document.querySelector("#save-button"),
   shareButton: document.querySelector("#share-button"),
@@ -235,13 +236,18 @@ function renderSequence() {
     0,
   );
   elements.selectedCount.textContent = selectedOrders.length;
-  elements.totalTime.textContent = formatTime(totalSeconds);
+  elements.remainingTime.textContent = formatSignedTime(MATCH_DURATION_SECONDS - totalSeconds);
 }
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60);
   const rest = seconds % 60;
   return `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
+}
+
+function formatSignedTime(seconds) {
+  const sign = seconds < 0 ? "−" : "";
+  return `${sign}${formatTime(Math.abs(seconds))}`;
 }
 
 function addOrder(id) {
