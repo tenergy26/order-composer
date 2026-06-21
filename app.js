@@ -221,6 +221,7 @@ function renderSequence() {
         elapsed += order.duration + order.wait;
         const item = document.createElement("article");
         item.className = "sequence-item";
+        item.classList.toggle("sequence-item-compact", order.id === "wait-command");
         item.draggable = true;
         item.dataset.id = order.id;
         item.style.setProperty("--item-color", order.color);

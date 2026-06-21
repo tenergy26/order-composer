@@ -565,6 +565,35 @@ h2 {
   transform: translateY(3px);
 }
 
+.sequence-item.sequence-item-compact {
+  min-height: 34px;
+  height: 34px;
+  padding: 3px 8px;
+}
+
+.sequence-item.sequence-item-compact .sequence-index {
+  grid-template-columns: 1fr auto;
+  gap: 3px;
+  align-self: center;
+  padding: 0;
+}
+
+.sequence-item.sequence-item-compact .drag-grip {
+  font-size: 0.65rem;
+}
+
+.sequence-item.sequence-item-compact .sequence-info small {
+  display: none;
+}
+
+.sequence-item.sequence-item-compact .sequence-actions {
+  gap: 4px;
+}
+
+.sequence-item.sequence-item-compact .time-chip {
+  display: none;
+}
+
 .sequence-index {
   display: grid;
   gap: 2px;
@@ -759,6 +788,10 @@ footer {
     grid-template-columns: 54px 1fr auto;
     gap: 7px;
     touch-action: pan-y;
+  }
+
+  .sequence-item.sequence-item-compact {
+    grid-template-columns: 54px 1fr auto;
   }
 
   .time-chip {
