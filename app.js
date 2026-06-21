@@ -85,8 +85,8 @@ const ORDERS = [
     name: "待ち",
     type: "その他",
     icon: "WT",
-    duration: 0,
-    wait: 10,
+    duration: 10,
+    wait: 0,
     color: "#a9b0c2",
   },
 ];
