@@ -237,6 +237,7 @@ function renderSequence() {
         item.addEventListener("touchend", handleTouchEnd);
         item.addEventListener("touchcancel", cancelTouchDrag);
         item.addEventListener("contextmenu", handleSequenceContextMenu);
+        item.addEventListener("selectstart", preventSequenceSelection);
         return item;
       }),
     );
@@ -419,9 +420,11 @@ function clearTouchDragState() {
 }
 
 function handleSequenceContextMenu(event) {
-  if (state.touchDrag?.active) {
-    event.preventDefault();
-  }
+  event.preventDefault();
+}
+
+function preventSequenceSelection(event) {
+  event.preventDefault();
 }
 
 function saveSequence() {

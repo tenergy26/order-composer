@@ -490,11 +490,22 @@ h2 {
     rgba(16, 19, 30, 0.94);
   cursor: grab;
   -webkit-touch-callout: none;
+  -webkit-user-select: none;
   user-select: none;
+  touch-action: pan-y;
   transition:
     opacity 140ms ease,
     transform 140ms ease,
     border-color 140ms ease;
+}
+
+.sequence-item *,
+.sequence-item *::before,
+.sequence-item *::after {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .sequence-item:active {
