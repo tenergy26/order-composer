@@ -91,7 +91,7 @@ const ORDERS = [
   },
 ];
 
-const MAX_ORDERS = 8;
+const MAX_ORDERS = 20;
 const MATCH_DURATION_SECONDS = 15 * 60;
 const LONG_PRESS_DELAY_MS = 450;
 const LONG_PRESS_MOVE_TOLERANCE = 10;
