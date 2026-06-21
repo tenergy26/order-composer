@@ -181,6 +181,7 @@ function renderCatalog() {
 
       card.style.setProperty("--card-color", order.color);
       card.classList.toggle("selected", selected);
+      card.classList.toggle("order-card-compact", order.id === "wait-command");
       fragment.querySelector(".order-icon").textContent = order.icon;
       fragment.querySelector(".type-pill").textContent = order.type.toUpperCase();
       fragment.querySelector(".order-duration").textContent = `${order.duration} SEC`;

@@ -274,6 +274,41 @@ h2 {
   border-color: rgba(255, 255, 255, 0.17);
 }
 
+.order-card.order-card-compact {
+  height: 80px;
+  min-height: 80px;
+  padding: 8px 10px;
+  grid-template-columns: 42px 1fr;
+  gap: 10px;
+}
+
+.order-card.order-card-compact .order-icon {
+  width: 42px;
+  height: 42px;
+}
+
+.order-card.order-card-compact .order-content {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+}
+
+.order-card.order-card-compact .order-meta {
+  grid-column: 1 / -1;
+}
+
+.order-card.order-card-compact h3 {
+  grid-column: 1;
+  margin: 2px 0 0;
+}
+
+.order-card.order-card-compact .order-footer {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0;
+}
+
 .order-card.selected {
   opacity: 0.48;
 }
