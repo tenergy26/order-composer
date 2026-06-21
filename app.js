@@ -92,6 +92,8 @@ const ORDERS = [
 ];
 
 const MAX_ORDERS = 20;
+const MAX_WAIT_ORDERS = 10;
+const WAIT_ORDER_ID = "wait-command";
 const MATCH_DURATION_SECONDS = 15 * 60;
 const LONG_PRESS_DELAY_MS = 450;
 const LONG_PRESS_MOVE_TOLERANCE = 10;
@@ -138,9 +140,59 @@ function loadInitialSequence() {
 }
 
 function sanitizeIds(ids) {
-  return [...new Set(ids)]
-    .filter((id) => ORDERS.some((order) => order.id === id))
-    .slice(0, MAX_ORDERS);
+  const sanitized = [];
+  const usedEntries = new Set();
+  const usedOrderIds = new Set();
+  let waitCount = 0;
+
+  for (const rawEntryId of ids) {
+    if (sanitized.length >= MAX_ORDERS || typeof rawEntryId !== "string") break;
+
+    const orderId = getOrderId(rawEntryId);
+    if (!ORDERS.some((order) => order.id === orderId)) continue;
+
+    if (orderId === WAIT_ORDER_ID) {
+      if (waitCount >= MAX_WAIT_ORDERS) continue;
+      let entryId = rawEntryId.includes("~")
+        ? rawEntryId
+        : `${WAIT_ORDER_ID}~${waitCount + 1}`;
+      while (usedEntries.has(entryId)) {
+        entryId = `${WAIT_ORDER_ID}~${waitCount + 1}-${usedEntries.size}`;
+      }
+      sanitized.push(entryId);
+      usedEntries.add(entryId);
+      waitCount += 1;
+      continue;
+    }
+
+    if (usedOrderIds.has(orderId)) continue;
+    sanitized.push(orderId);
+    usedEntries.add(orderId);
+    usedOrderIds.add(orderId);
+  }
+
+  return sanitized;
+}
+
+function getOrderId(entryId) {
+  return entryId.split("~")[0];
+}
+
+function getOrderByEntryId(entryId) {
+  const orderId = getOrderId(entryId);
+  return ORDERS.find((order) => order.id === orderId);
+}
+
+function getOrderCount(orderId) {
+  return state.selectedIds.filter((entryId) => getOrderId(entryId) === orderId).length;
+}
+
+function createWaitEntryId() {
+  let serial = 1;
+  while (state.selectedIds.includes(`${WAIT_ORDER_ID}~${serial}`)) {
+    serial += 1;
+  }
+  return `${WAIT_ORDER_ID}~${serial}`;
 }
 
 function renderFilters() {
@@ -177,20 +229,26 @@ function renderCatalog() {
       const fragment = elements.cardTemplate.content.cloneNode(true);
       const card = fragment.querySelector(".order-card");
       const addButton = fragment.querySelector(".add-button");
-      const selected = state.selectedIds.includes(order.id);
+      const selectedCount = getOrderCount(order.id);
+      const isWaitOrder = order.id === WAIT_ORDER_ID;
+      const reachedLimit = isWaitOrder
+        ? selectedCount >= MAX_WAIT_ORDERS
+        : selectedCount >= 1;
 
       card.style.setProperty("--card-color", order.color);
-      card.classList.toggle("selected", selected);
-      card.classList.toggle("order-card-compact", order.id === "wait-command");
+      card.classList.toggle("selected", reachedLimit);
+      card.classList.toggle("order-card-compact", isWaitOrder);
       fragment.querySelector(".order-icon").textContent = order.icon;
       fragment.querySelector(".type-pill").textContent = order.type.toUpperCase();
       fragment.querySelector(".order-duration").textContent = `${order.duration} SEC`;
       fragment.querySelector("h3").textContent = order.name;
-      addButton.textContent = selected ? "✓" : "＋";
-      addButton.disabled = selected;
+      addButton.textContent = reachedLimit ? "✓" : "＋";
+      addButton.disabled = reachedLimit;
       addButton.setAttribute(
         "aria-label",
-        selected ? `${order.name}は追加済み` : `${order.name}を編成に追加`,
+        reachedLimit
+          ? `${order.name}は上限まで追加済み`
+          : `${order.name}を編成に追加${isWaitOrder ? `（${selectedCount + 1}個目）` : ""}`,
       );
       addButton.addEventListener("click", () => addOrder(order.id));
 
@@ -200,11 +258,11 @@ function renderCatalog() {
 }
 
 function renderSequence() {
-  const selectedOrders = state.selectedIds
-    .map((id) => ORDERS.find((order) => order.id === id))
-    .filter(Boolean);
+  const selectedEntries = state.selectedIds
+    .map((entryId) => ({ entryId, order: getOrderByEntryId(entryId) }))
+    .filter(({ order }) => Boolean(order));
 
-  if (selectedOrders.length === 0) {
+  if (selectedEntries.length === 0) {
     const empty = document.createElement("div");
     empty.className = "empty-state";
     empty.innerHTML = `
@@ -216,14 +274,14 @@ function renderSequence() {
   } else {
     let elapsed = 0;
     elements.sequenceList.replaceChildren(
-      ...selectedOrders.map((order, index) => {
+      ...selectedEntries.map(({ entryId, order }, index) => {
         const start = elapsed;
         elapsed += order.duration + order.wait;
         const item = document.createElement("article");
         item.className = "sequence-item";
-        item.classList.toggle("sequence-item-compact", order.id === "wait-command");
+        item.classList.toggle("sequence-item-compact", order.id === WAIT_ORDER_ID);
         item.draggable = true;
-        item.dataset.id = order.id;
+        item.dataset.id = entryId;
         item.style.setProperty("--item-color", order.color);
         item.innerHTML = `
           <div
@@ -246,7 +304,7 @@ function renderSequence() {
           </div>
         `;
 
-        item.querySelector(".remove-button").addEventListener("click", () => removeOrder(order.id));
+        item.querySelector(".remove-button").addEventListener("click", () => removeOrder(entryId));
         item.addEventListener("dragstart", handleDragStart);
         item.addEventListener("dragend", handleDragEnd);
         item.addEventListener("dragover", handleDragOver);
@@ -264,11 +322,11 @@ function renderSequence() {
     );
   }
 
-  const totalSeconds = selectedOrders.reduce(
-    (sum, order) => sum + order.duration + order.wait,
+  const totalSeconds = selectedEntries.reduce(
+    (sum, { order }) => sum + order.duration + order.wait,
     0,
   );
-  elements.selectedCount.textContent = selectedOrders.length;
+  elements.selectedCount.textContent = selectedEntries.length;
   elements.remainingTime.textContent = formatSignedTime(MATCH_DURATION_SECONDS - totalSeconds);
 }
 
@@ -288,14 +346,24 @@ function addOrder(id) {
     showToast(`編成できるのは最大${MAX_ORDERS}件です`);
     return;
   }
+  if (id === WAIT_ORDER_ID) {
+    if (getOrderCount(WAIT_ORDER_ID) >= MAX_WAIT_ORDERS) {
+      showToast(`「待ち」は最大${MAX_WAIT_ORDERS}個までです`);
+      return;
+    }
+    state.selectedIds.push(createWaitEntryId());
+    render();
+    return;
+  }
+
   if (!state.selectedIds.includes(id)) {
     state.selectedIds.push(id);
     render();
   }
 }
 
-function removeOrder(id) {
-  state.selectedIds = state.selectedIds.filter((selectedId) => selectedId !== id);
+function removeOrder(entryId) {
+  state.selectedIds = state.selectedIds.filter((selectedId) => selectedId !== entryId);
   render();
 }
 
