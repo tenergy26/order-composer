@@ -220,7 +220,9 @@ function renderSequence() {
             role="button"
             aria-label="${order.name}を長押しして並べ替え"
           >
-            <span>${String(index + 1).padStart(2, "0")}</span>
+            <span class="remaining-time-chip">${formatSignedTime(
+              MATCH_DURATION_SECONDS - start,
+            )}</span>
             <span class="drag-grip" aria-hidden="true">⠿</span>
           </div>
           <div class="sequence-info">

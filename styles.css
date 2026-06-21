@@ -477,7 +477,7 @@ h2 {
 .sequence-item {
   --item-color: var(--cyan);
   display: grid;
-  grid-template-columns: 38px 1fr auto;
+  grid-template-columns: 58px 1fr auto;
   gap: 12px;
   align-items: center;
   min-height: 68px;
@@ -544,6 +544,12 @@ h2 {
   font-weight: 800;
   text-align: center;
   touch-action: none;
+}
+
+.remaining-time-chip {
+  font-size: 0.72rem;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
 }
 
 .sequence-index:active {
@@ -715,7 +721,7 @@ footer {
   }
 
   .sequence-item {
-    grid-template-columns: 30px 1fr auto;
+    grid-template-columns: 54px 1fr auto;
     gap: 7px;
     touch-action: pan-y;
   }
