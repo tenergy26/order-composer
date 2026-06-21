@@ -80,6 +80,15 @@ const ORDERS = [
     wait: 5,
     color: "#ffd45e",
   },
+  {
+    id: "wait-command",
+    name: "待ち",
+    type: "その他",
+    icon: "WT",
+    duration: 0,
+    wait: 10,
+    color: "#a9b0c2",
+  },
 ];
 
 const MAX_ORDERS = 8;
