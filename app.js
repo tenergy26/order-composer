@@ -357,7 +357,6 @@ function renderSequence() {
             <small>${order.type} · 効果 ${order.duration}秒 · 待機 ${order.wait}秒</small>
           </div>
           <div class="sequence-actions">
-            <span class="time-chip">${formatTime(start)} → ${formatTime(start + order.duration)}</span>
             <button class="remove-button" type="button" aria-label="${order.name}を外す">×</button>
           </div>
         `;

@@ -586,10 +586,6 @@ h2 {
   gap: 4px;
 }
 
-.sequence-item.sequence-item-compact .time-chip {
-  display: none;
-}
-
 .sequence-index {
   display: grid;
   gap: 2px;
@@ -684,18 +680,6 @@ h2 {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.time-chip {
-  min-width: 84px;
-  padding: 7px 9px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  color: #c4cad8;
-  background: rgba(255, 255, 255, 0.025);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.66rem;
-  text-align: center;
 }
 
 .remove-button {
@@ -826,7 +810,4 @@ footer {
     grid-template-columns: 54px 1fr auto;
   }
 
-  .time-chip {
-    display: none;
-  }
 }
