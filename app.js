@@ -107,6 +107,7 @@ const MATCH_DURATION_SECONDS = 15 * 60;
 const LONG_PRESS_DELAY_MS = 450;
 const LONG_PRESS_MOVE_TOLERANCE = 10;
 const STORAGE_KEY = "order-composer-sequence-v1";
+const ASSIGNEE_STORAGE_KEY = "order-composer-assignees-v2";
 const categories = [
   "すべて",
   ...new Set([...ORDERS.map((order) => order.type), "その他"]),
@@ -114,6 +115,7 @@ const categories = [
 
 const state = {
   selectedIds: loadInitialSequence(),
+  assignees: loadAssignees(),
   filter: "すべて",
   query: "",
   draggedId: null,
@@ -145,6 +147,33 @@ function loadInitialSequence() {
     return sanitizeIds(JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []);
   } catch {
     return [];
+  }
+}
+
+function loadAssignees() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(ASSIGNEE_STORAGE_KEY)) ?? {};
+    return Object.fromEntries(
+      Object.entries(stored)
+        .filter(([entryId, assignee]) => {
+          const order = getOrderByEntryId(entryId);
+          return (
+            order &&
+            order.id !== WAIT_ORDER_ID &&
+            assignee &&
+            typeof assignee === "object"
+          );
+        })
+        .map(([entryId, assignee]) => [
+          entryId,
+          {
+            main: typeof assignee.main === "string" ? assignee.main.slice(0, 5) : "",
+            sub: typeof assignee.sub === "string" ? assignee.sub.slice(0, 5) : "",
+          },
+        ]),
+    );
+  } catch {
+    return {};
   }
 }
 
@@ -314,6 +343,46 @@ function renderSequence() {
           </div>
         `;
 
+        if (order.id !== WAIT_ORDER_ID) {
+          const assigneeFields = document.createElement("div");
+          assigneeFields.className = "assignee-fields";
+
+          for (const [key, labelText] of [
+            ["main", "メイン担当:"],
+            ["sub", "サブ担当:"],
+          ]) {
+            const label = document.createElement("label");
+            label.className = "assignee-field";
+            label.textContent = labelText;
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.maxLength = 5;
+            input.value = state.assignees[entryId]?.[key] ?? "";
+            input.setAttribute("aria-label", `${order.name}の${labelText.slice(0, -1)}`);
+            input.addEventListener("pointerdown", (event) => event.stopPropagation());
+            input.addEventListener("touchstart", (event) => event.stopPropagation());
+            input.addEventListener("selectstart", (event) => event.stopPropagation());
+            input.addEventListener("focus", () => {
+              item.draggable = false;
+            });
+            input.addEventListener("blur", () => {
+              item.draggable = true;
+            });
+            input.addEventListener("input", (event) => {
+              const value = event.target.value.slice(0, 5);
+              event.target.value = value;
+              state.assignees[entryId] ??= { main: "", sub: "" };
+              state.assignees[entryId][key] = value;
+            });
+
+            label.append(input);
+            assigneeFields.append(label);
+          }
+
+          item.querySelector(".sequence-info").append(assigneeFields);
+        }
+
         item.querySelector(".remove-button").addEventListener("click", () => removeOrder(entryId));
         item.addEventListener("dragstart", handleDragStart);
         item.addEventListener("dragend", handleDragEnd);
@@ -374,6 +443,7 @@ function addOrder(id) {
 
 function removeOrder(entryId) {
   state.selectedIds = state.selectedIds.filter((selectedId) => selectedId !== entryId);
+  delete state.assignees[entryId];
   render();
 }
 
@@ -529,6 +599,7 @@ function preventSequenceSelection(event) {
 
 function saveSequence() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.selectedIds));
+  localStorage.setItem(ASSIGNEE_STORAGE_KEY, JSON.stringify(state.assignees));
   showToast("この端末に編成を保存しました");
 }
 
@@ -568,6 +639,7 @@ elements.searchInput.addEventListener("input", (event) => {
 elements.clearButton.addEventListener("click", () => {
   if (state.selectedIds.length === 0) return;
   state.selectedIds = [];
+  state.assignees = {};
   render();
 });
 

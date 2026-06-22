@@ -659,6 +659,40 @@ h2 {
   font-size: 0.66rem;
 }
 
+.assignee-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: 8px;
+}
+
+.assignee-field {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.66rem;
+  white-space: nowrap;
+}
+
+.assignee-field input {
+  width: 6.5em;
+  min-height: 28px;
+  padding: 3px 7px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  outline: none;
+  color: var(--text);
+  background: var(--surface-3);
+  font: inherit;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
+.assignee-field input:focus {
+  border-color: var(--item-color);
+}
+
 .sequence-actions {
   display: flex;
   align-items: center;
