@@ -247,7 +247,12 @@ function renderCatalog() {
       card.style.setProperty("--card-color", order.color);
       card.classList.toggle("selected", reachedLimit);
       card.classList.toggle("order-card-compact", isWaitOrder);
-      fragment.querySelector(".order-icon").textContent = order.icon;
+      const orderIcon = fragment.querySelector(".order-icon");
+      orderIcon.textContent = order.icon;
+      if (order.id === "brave-field") {
+        orderIcon.remove();
+        card.classList.add("order-card-no-icon");
+      }
       fragment.querySelector(".type-pill").textContent = order.type.toUpperCase();
       fragment.querySelector(".order-duration").textContent = `${order.duration} SEC`;
       fragment.querySelector("h3").textContent = order.name;

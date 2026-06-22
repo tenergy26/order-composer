@@ -279,6 +279,10 @@ h2 {
   border-color: rgba(255, 255, 255, 0.17);
 }
 
+.order-card.order-card-no-icon {
+  grid-template-columns: 1fr;
+}
+
 .order-card.order-card-compact {
   height: 80px;
   min-height: 80px;
