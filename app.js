@@ -72,6 +72,15 @@ const ORDERS = [
     color: "#5ca5ff",
   },
   {
+    id: "water-wind",
+    name: "水風",
+    type: "属性",
+    icon: "WW",
+    duration: 130,
+    wait: 20,
+    color: "#55c9d9",
+  },
+  {
     id: "limit-drive",
     name: "加速",
     type: "その他",
