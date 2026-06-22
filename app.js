@@ -112,6 +112,7 @@ const categories = [
   "すべて",
   ...new Set([...ORDERS.map((order) => order.type), "その他"]),
 ];
+const sharedData = loadCompactSharedData();
 
 const state = {
   selectedIds: loadInitialSequence(),
@@ -138,6 +139,10 @@ const elements = {
 };
 
 function loadInitialSequence() {
+  if (sharedData) {
+    return sharedData.selectedIds;
+  }
+
   const urlIds = new URLSearchParams(window.location.search).get("orders");
   if (urlIds) {
     return sanitizeIds(urlIds.split(","));
@@ -151,6 +156,10 @@ function loadInitialSequence() {
 }
 
 function loadAssignees() {
+  if (sharedData) {
+    return sharedData.assignees;
+  }
+
   const urlAssignees = new URLSearchParams(window.location.search).get("assignees");
   if (urlAssignees) {
     try {
@@ -166,6 +175,118 @@ function loadAssignees() {
   } catch {
     return {};
   }
+}
+
+function loadCompactSharedData() {
+  const compactData = new URLSearchParams(window.location.search).get("s");
+  if (!compactData) return null;
+
+  try {
+    const bytes = base64UrlToBytes(compactData);
+    let cursor = 0;
+    if (bytes[cursor++] !== 1) return null;
+
+    const orderCount = bytes[cursor++];
+    if (orderCount > MAX_ORDERS || cursor + orderCount > bytes.length) return null;
+
+    const orderIds = [];
+    for (let index = 0; index < orderCount; index += 1) {
+      const order = ORDERS[bytes[cursor++]];
+      if (!order) return null;
+      orderIds.push(order.id);
+    }
+
+    const nameCount = bytes[cursor++];
+    if (nameCount > MAX_ORDERS * 2) return null;
+
+    const decoder = new TextDecoder();
+    const names = [];
+    for (let index = 0; index < nameCount; index += 1) {
+      const byteLength = bytes[cursor++];
+      if (cursor + byteLength > bytes.length) return null;
+      names.push(decoder.decode(bytes.slice(cursor, cursor + byteLength)).slice(0, 5));
+      cursor += byteLength;
+    }
+
+    if (cursor + orderCount * 2 !== bytes.length) return null;
+
+    const selectedIds = sanitizeIds(orderIds);
+    const assignees = {};
+    for (let index = 0; index < orderCount; index += 1) {
+      const mainIndex = bytes[cursor++];
+      const subIndex = bytes[cursor++];
+      const entryId = selectedIds[index];
+      if (
+        !entryId ||
+        getOrderId(entryId) === WAIT_ORDER_ID ||
+        mainIndex > names.length ||
+        subIndex > names.length
+      ) {
+        continue;
+      }
+
+      const main = mainIndex === 0 ? "" : names[mainIndex - 1];
+      const sub = subIndex === 0 ? "" : names[subIndex - 1];
+      if (main || sub) {
+        assignees[entryId] = { main, sub };
+      }
+    }
+
+    return { selectedIds, assignees };
+  } catch {
+    return null;
+  }
+}
+
+function createCompactSharedData() {
+  const encoder = new TextEncoder();
+  const names = [];
+  const nameIndexes = new Map();
+
+  const getNameIndex = (name) => {
+    const value = typeof name === "string" ? name.slice(0, 5) : "";
+    if (!value) return 0;
+    if (!nameIndexes.has(value)) {
+      names.push(value);
+      nameIndexes.set(value, names.length);
+    }
+    return nameIndexes.get(value);
+  };
+
+  const assigneeIndexes = state.selectedIds.map((entryId) => {
+    const assignee = state.assignees[entryId];
+    return [getNameIndex(assignee?.main), getNameIndex(assignee?.sub)];
+  });
+
+  const bytes = [1, state.selectedIds.length];
+  for (const entryId of state.selectedIds) {
+    bytes.push(ORDERS.findIndex((order) => order.id === getOrderId(entryId)));
+  }
+
+  bytes.push(names.length);
+  for (const name of names) {
+    const encodedName = encoder.encode(name);
+    bytes.push(encodedName.length, ...encodedName);
+  }
+
+  for (const [mainIndex, subIndex] of assigneeIndexes) {
+    bytes.push(mainIndex, subIndex);
+  }
+
+  return bytesToBase64Url(Uint8Array.from(bytes));
+}
+
+function bytesToBase64Url(bytes) {
+  return btoa(String.fromCharCode(...bytes))
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replace(/=+$/, "");
+}
+
+function base64UrlToBytes(value) {
+  const base64 = value.replaceAll("-", "+").replaceAll("_", "/");
+  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+  return Uint8Array.from(atob(padded), (character) => character.charCodeAt(0));
 }
 
 function sanitizeAssignees(assignees) {
@@ -625,17 +746,7 @@ async function shareSequence() {
   const url = new URL(window.location.href);
   url.search = "";
   if (state.selectedIds.length > 0) {
-    url.searchParams.set("orders", state.selectedIds.join(","));
-  }
-
-  const sharedAssignees = Object.fromEntries(
-    state.selectedIds
-      .filter((entryId) => getOrderId(entryId) !== WAIT_ORDER_ID)
-      .map((entryId) => [entryId, state.assignees[entryId]])
-      .filter(([, assignee]) => assignee?.main || assignee?.sub),
-  );
-  if (Object.keys(sharedAssignees).length > 0) {
-    url.searchParams.set("assignees", JSON.stringify(sharedAssignees));
+    url.searchParams.set("s", createCompactSharedData());
   }
 
   try {
