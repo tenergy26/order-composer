@@ -151,30 +151,48 @@ function loadInitialSequence() {
 }
 
 function loadAssignees() {
+  const urlAssignees = new URLSearchParams(window.location.search).get("assignees");
+  if (urlAssignees) {
+    try {
+      return sanitizeAssignees(JSON.parse(urlAssignees));
+    } catch {
+      return {};
+    }
+  }
+
   try {
     const stored = JSON.parse(localStorage.getItem(ASSIGNEE_STORAGE_KEY)) ?? {};
-    return Object.fromEntries(
-      Object.entries(stored)
-        .filter(([entryId, assignee]) => {
-          const order = getOrderByEntryId(entryId);
-          return (
-            order &&
-            order.id !== WAIT_ORDER_ID &&
-            assignee &&
-            typeof assignee === "object"
-          );
-        })
-        .map(([entryId, assignee]) => [
-          entryId,
-          {
-            main: typeof assignee.main === "string" ? assignee.main.slice(0, 5) : "",
-            sub: typeof assignee.sub === "string" ? assignee.sub.slice(0, 5) : "",
-          },
-        ]),
-    );
+    return sanitizeAssignees(stored);
   } catch {
     return {};
   }
+}
+
+function sanitizeAssignees(assignees) {
+  if (!assignees || typeof assignees !== "object" || Array.isArray(assignees)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(assignees)
+      .filter(([entryId, assignee]) => {
+        const order = getOrderByEntryId(entryId);
+        return (
+          order &&
+          order.id !== WAIT_ORDER_ID &&
+          assignee &&
+          typeof assignee === "object" &&
+          !Array.isArray(assignee)
+        );
+      })
+      .map(([entryId, assignee]) => [
+        entryId,
+        {
+          main: typeof assignee.main === "string" ? assignee.main.slice(0, 5) : "",
+          sub: typeof assignee.sub === "string" ? assignee.sub.slice(0, 5) : "",
+        },
+      ]),
+  );
 }
 
 function sanitizeIds(ids) {
@@ -609,6 +627,17 @@ async function shareSequence() {
   if (state.selectedIds.length > 0) {
     url.searchParams.set("orders", state.selectedIds.join(","));
   }
+
+  const sharedAssignees = Object.fromEntries(
+    state.selectedIds
+      .filter((entryId) => getOrderId(entryId) !== WAIT_ORDER_ID)
+      .map((entryId) => [entryId, state.assignees[entryId]])
+      .filter(([, assignee]) => assignee?.main || assignee?.sub),
+  );
+  if (Object.keys(sharedAssignees).length > 0) {
+    url.searchParams.set("assignees", JSON.stringify(sharedAssignees));
+  }
+
   try {
     await navigator.clipboard.writeText(url.toString());
     showToast("共有URLをコピーしました");
