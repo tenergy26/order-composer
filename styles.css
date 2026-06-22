@@ -458,19 +458,6 @@ h2 {
   margin-top: 25px;
 }
 
-.timeline-ruler {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  margin: 0 54px 10px 65px;
-  color: #585f72;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.6rem;
-}
-
-.timeline-ruler span:not(:first-child) {
-  text-align: right;
-}
-
 .sequence-list {
   display: flex;
   min-height: 430px;
@@ -827,10 +814,6 @@ footer {
   .summary-stat {
     padding: 0;
     border-left: 0;
-  }
-
-  .timeline-ruler {
-    display: none;
   }
 
   .sequence-item {
