@@ -149,6 +149,11 @@ button {
 }
 
 .catalog-panel {
+  order: 2;
+}
+
+.composer-panel {
+  order: 1;
   border-right: 1px solid var(--line);
 }
 
@@ -733,6 +738,12 @@ footer {
   }
 
   .catalog-panel {
+    order: 2;
+    border-right: 0;
+  }
+
+  .composer-panel {
+    order: 1;
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
