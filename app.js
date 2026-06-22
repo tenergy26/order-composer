@@ -103,13 +103,10 @@ const ORDERS = [
 const MAX_ORDERS = 20;
 const MAX_WAIT_ORDERS = 10;
 const WAIT_ORDER_ID = "wait-command";
-const SUPPORT_ORDER_ID = "elemental-burst";
-const MAIN_ASSIGNEES = ["とも", "スット", "くると"];
 const MATCH_DURATION_SECONDS = 15 * 60;
 const LONG_PRESS_DELAY_MS = 450;
 const LONG_PRESS_MOVE_TOLERANCE = 10;
 const STORAGE_KEY = "order-composer-sequence-v1";
-const ASSIGNEE_STORAGE_KEY = "order-composer-assignees-v1";
 const categories = [
   "すべて",
   ...new Set([...ORDERS.map((order) => order.type), "その他"]),
@@ -117,7 +114,6 @@ const categories = [
 
 const state = {
   selectedIds: loadInitialSequence(),
-  mainAssignees: loadMainAssignees(),
   filter: "すべて",
   query: "",
   draggedId: null,
@@ -149,22 +145,6 @@ function loadInitialSequence() {
     return sanitizeIds(JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []);
   } catch {
     return [];
-  }
-}
-
-function loadMainAssignees() {
-  const urlAssignee = new URLSearchParams(window.location.search).get("main");
-  if (MAIN_ASSIGNEES.includes(urlAssignee)) {
-    return { [SUPPORT_ORDER_ID]: urlAssignee };
-  }
-
-  try {
-    const stored = JSON.parse(localStorage.getItem(ASSIGNEE_STORAGE_KEY)) ?? {};
-    return MAIN_ASSIGNEES.includes(stored[SUPPORT_ORDER_ID])
-      ? { [SUPPORT_ORDER_ID]: stored[SUPPORT_ORDER_ID] }
-      : {};
-  } catch {
-    return {};
   }
 }
 
@@ -333,41 +313,6 @@ function renderSequence() {
           </div>
         `;
 
-        if (order.id === SUPPORT_ORDER_ID) {
-          const assigneeField = document.createElement("label");
-          assigneeField.className = "assignee-field";
-          assigneeField.innerHTML = `
-            <span>メイン担当</span>
-            <select aria-label="支えのメイン担当">
-              <option value="">未選択</option>
-              ${MAIN_ASSIGNEES.map(
-                (assignee) =>
-                  `<option value="${assignee}"${
-                    state.mainAssignees[entryId] === assignee ? " selected" : ""
-                  }>${assignee}</option>`,
-              ).join("")}
-            </select>
-          `;
-
-          const select = assigneeField.querySelector("select");
-          select.addEventListener("pointerdown", (event) => event.stopPropagation());
-          select.addEventListener("touchstart", (event) => event.stopPropagation());
-          select.addEventListener("focus", () => {
-            item.draggable = false;
-          });
-          select.addEventListener("blur", () => {
-            item.draggable = true;
-          });
-          select.addEventListener("change", (event) => {
-            if (event.target.value) {
-              state.mainAssignees[entryId] = event.target.value;
-            } else {
-              delete state.mainAssignees[entryId];
-            }
-          });
-          item.querySelector(".sequence-info").append(assigneeField);
-        }
-
         item.querySelector(".remove-button").addEventListener("click", () => removeOrder(entryId));
         item.addEventListener("dragstart", handleDragStart);
         item.addEventListener("dragend", handleDragEnd);
@@ -428,7 +373,6 @@ function addOrder(id) {
 
 function removeOrder(entryId) {
   state.selectedIds = state.selectedIds.filter((selectedId) => selectedId !== entryId);
-  delete state.mainAssignees[entryId];
   render();
 }
 
@@ -584,7 +528,6 @@ function preventSequenceSelection(event) {
 
 function saveSequence() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.selectedIds));
-  localStorage.setItem(ASSIGNEE_STORAGE_KEY, JSON.stringify(state.mainAssignees));
   showToast("この端末に編成を保存しました");
 }
 
@@ -594,11 +537,6 @@ async function shareSequence() {
   if (state.selectedIds.length > 0) {
     url.searchParams.set("orders", state.selectedIds.join(","));
   }
-  const mainAssignee = state.mainAssignees[SUPPORT_ORDER_ID];
-  if (MAIN_ASSIGNEES.includes(mainAssignee)) {
-    url.searchParams.set("main", mainAssignee);
-  }
-
   try {
     await navigator.clipboard.writeText(url.toString());
     showToast("共有URLをコピーしました");
@@ -629,7 +567,6 @@ elements.searchInput.addEventListener("input", (event) => {
 elements.clearButton.addEventListener("click", () => {
   if (state.selectedIds.length === 0) return;
   state.selectedIds = [];
-  state.mainAssignees = {};
   render();
 });
 

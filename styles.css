@@ -650,30 +650,6 @@ h2 {
   font-size: 0.66rem;
 }
 
-.assignee-field {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-top: 7px;
-  color: var(--muted);
-  font-size: 0.66rem;
-}
-
-.assignee-field select {
-  min-height: 28px;
-  padding: 3px 24px 3px 8px;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  outline: none;
-  color: var(--text);
-  background: var(--surface-3);
-  cursor: pointer;
-}
-
-.assignee-field select:focus {
-  border-color: var(--item-color);
-}
-
 .sequence-actions {
   display: flex;
   align-items: center;
