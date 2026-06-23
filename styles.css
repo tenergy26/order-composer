@@ -617,6 +617,7 @@ h2 {
   color: var(--text);
   background: var(--surface-3);
   font: inherit;
+  font-size: 16px;
   user-select: text !important;
   -webkit-user-select: text !important;
 }
