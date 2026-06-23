@@ -795,10 +795,7 @@ footer {
   .summary-card {
     grid-template-columns: 1fr 1fr;
     gap: 16px;
-  }
-
-  .summary-main {
-    grid-column: 1 / -1;
+    align-items: start;
   }
 
   .summary-stat {
