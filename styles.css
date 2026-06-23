@@ -741,15 +741,26 @@ footer {
 @media (max-width: 600px) {
   .app-header {
     min-height: 68px;
+    padding-right: 12px;
+    padding-left: 12px;
   }
 
-  .button-ghost {
-    display: none;
+  .brand strong {
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+  }
+
+  .header-actions {
+    flex-shrink: 0;
+    gap: 6px;
   }
 
   .button {
     min-height: 38px;
-    padding: 0 13px;
+    gap: 5px;
+    padding: 0 9px;
+    font-size: 0.78rem;
+    white-space: nowrap;
   }
 
   .catalog-panel,
