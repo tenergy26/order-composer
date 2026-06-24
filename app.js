@@ -129,7 +129,6 @@ const elements = {
   sequenceList: document.querySelector("#sequence-list"),
   filterRow: document.querySelector("#filter-row"),
   searchInput: document.querySelector("#search-input"),
-  catalogCount: document.querySelector("#catalog-count"),
   selectedCount: document.querySelector("#selected-count"),
   remainingTime: document.querySelector("#remaining-time"),
   clearButton: document.querySelector("#clear-button"),
@@ -411,7 +410,6 @@ function getVisibleOrders() {
 
 function renderCatalog() {
   const visibleOrders = getVisibleOrders();
-  elements.catalogCount.textContent = `${visibleOrders.length} ITEMS`;
 
   elements.orderGrid.replaceChildren(
     ...visibleOrders.map((order) => {

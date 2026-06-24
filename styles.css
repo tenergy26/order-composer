@@ -157,15 +157,6 @@ h2 {
   letter-spacing: 0.02em;
 }
 
-.count-badge {
-  padding: 5px 9px;
-  border: 1px solid var(--line);
-  border-radius: 99px;
-  color: var(--muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.72rem;
-}
-
 .search-box {
   display: flex;
   align-items: center;
