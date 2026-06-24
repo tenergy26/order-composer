@@ -752,9 +752,9 @@ footer {
 
   .assignee-field input {
     width: auto;
-    min-width: 4.85em;
+    min-width: 5em;
     flex: 1;
-    font-size: 14px;
+    font-size: 16px;
     padding-right: 4px;
     padding-left: 4px;
   }
