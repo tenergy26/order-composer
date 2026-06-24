@@ -745,15 +745,16 @@ footer {
 
   .assignee-field {
     min-width: 0;
-    gap: 2px;
+    gap: 1px;
     overflow: hidden;
-    font-size: 0.54rem;
+    font-size: 0.5rem;
   }
 
   .assignee-field input {
     width: auto;
-    min-width: 4.25em;
+    min-width: 4.85em;
     flex: 1;
+    font-size: 14px;
     padding-right: 4px;
     padding-left: 4px;
   }
