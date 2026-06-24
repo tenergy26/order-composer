@@ -497,13 +497,20 @@ function renderSequence() {
           const assigneeFields = document.createElement("div");
           assigneeFields.className = "assignee-fields";
 
-          for (const [key, labelText] of [
-            ["main", "メイン担当:"],
-            ["sub", "サブ担当:"],
+          for (const [key, labelText, shortLabelText] of [
+            ["main", "メイン担当:", "メイン:"],
+            ["sub", "サブ担当:", "サブ:"],
           ]) {
             const label = document.createElement("label");
             label.className = "assignee-field";
-            label.textContent = labelText;
+
+            const fullLabel = document.createElement("span");
+            fullLabel.className = "assignee-label assignee-label-full";
+            fullLabel.textContent = labelText;
+
+            const shortLabel = document.createElement("span");
+            shortLabel.className = "assignee-label assignee-label-short";
+            shortLabel.textContent = shortLabelText;
 
             const input = document.createElement("input");
             input.type = "text";
@@ -526,6 +533,7 @@ function renderSequence() {
               state.assignees[entryId][key] = value;
             });
 
+            label.append(fullLabel, shortLabel);
             label.append(input);
             assigneeFields.append(label);
           }
