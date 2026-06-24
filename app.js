@@ -106,6 +106,7 @@ const WAIT_ORDER_ID = "wait-command";
 const MATCH_DURATION_SECONDS = 15 * 60;
 const LONG_PRESS_DELAY_MS = 450;
 const LONG_PRESS_MOVE_TOLERANCE = 10;
+const ASSIGNEE_NAME_MAX_LENGTH = 4;
 const STORAGE_KEY = "order-composer-sequence-v1";
 const ASSIGNEE_STORAGE_KEY = "order-composer-assignees-v2";
 const categories = [
@@ -204,7 +205,11 @@ function loadCompactSharedData() {
     for (let index = 0; index < nameCount; index += 1) {
       const byteLength = bytes[cursor++];
       if (cursor + byteLength > bytes.length) return null;
-      names.push(decoder.decode(bytes.slice(cursor, cursor + byteLength)).slice(0, 5));
+      names.push(
+        decoder
+          .decode(bytes.slice(cursor, cursor + byteLength))
+          .slice(0, ASSIGNEE_NAME_MAX_LENGTH),
+      );
       cursor += byteLength;
     }
 
@@ -244,7 +249,7 @@ function createCompactSharedData() {
   const nameIndexes = new Map();
 
   const getNameIndex = (name) => {
-    const value = typeof name === "string" ? name.slice(0, 5) : "";
+    const value = typeof name === "string" ? name.slice(0, ASSIGNEE_NAME_MAX_LENGTH) : "";
     if (!value) return 0;
     if (!nameIndexes.has(value)) {
       names.push(value);
@@ -309,8 +314,14 @@ function sanitizeAssignees(assignees) {
       .map(([entryId, assignee]) => [
         entryId,
         {
-          main: typeof assignee.main === "string" ? assignee.main.slice(0, 5) : "",
-          sub: typeof assignee.sub === "string" ? assignee.sub.slice(0, 5) : "",
+          main:
+            typeof assignee.main === "string"
+              ? assignee.main.slice(0, ASSIGNEE_NAME_MAX_LENGTH)
+              : "",
+          sub:
+            typeof assignee.sub === "string"
+              ? assignee.sub.slice(0, ASSIGNEE_NAME_MAX_LENGTH)
+              : "",
         },
       ]),
   );
@@ -496,7 +507,7 @@ function renderSequence() {
 
             const input = document.createElement("input");
             input.type = "text";
-            input.maxLength = 5;
+            input.maxLength = ASSIGNEE_NAME_MAX_LENGTH;
             input.value = state.assignees[entryId]?.[key] ?? "";
             input.setAttribute("aria-label", `${order.name}の${labelText.slice(0, -1)}`);
             input.addEventListener("pointerdown", (event) => event.stopPropagation());
@@ -509,7 +520,7 @@ function renderSequence() {
               item.draggable = true;
             });
             input.addEventListener("input", (event) => {
-              const value = event.target.value.slice(0, 5);
+              const value = event.target.value.slice(0, ASSIGNEE_NAME_MAX_LENGTH);
               event.target.value = value;
               state.assignees[entryId] ??= { main: "", sub: "" };
               state.assignees[entryId][key] = value;
