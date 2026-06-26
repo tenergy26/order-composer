@@ -568,11 +568,10 @@ function renderSequence() {
         item.addEventListener("dragover", handleDragOver);
         item.addEventListener("dragleave", handleDragLeave);
         item.addEventListener("drop", handleDrop);
-        const dragHandle = item.querySelector(".sequence-index");
-        dragHandle.addEventListener("touchstart", handleTouchStart, { passive: false });
-        dragHandle.addEventListener("touchmove", handleTouchMove, { passive: false });
-        dragHandle.addEventListener("touchend", handleTouchEnd);
-        dragHandle.addEventListener("touchcancel", cancelTouchDrag);
+        item.addEventListener("touchstart", handleTouchStart, { passive: false });
+        item.addEventListener("touchmove", handleTouchMove, { passive: false });
+        item.addEventListener("touchend", handleTouchEnd);
+        item.addEventListener("touchcancel", cancelTouchDrag);
         item.addEventListener("contextmenu", handleSequenceContextMenu);
         item.addEventListener("selectstart", preventSequenceSelection);
         return item;
@@ -671,8 +670,8 @@ function reorderOrders(draggedId, targetId) {
 
 function handleTouchStart(event) {
   if (event.touches.length !== 1) return;
+  if (isTouchInteractiveElement(event.target)) return;
 
-  event.preventDefault();
   cancelTouchDrag();
   const touch = event.touches[0];
   const item = event.currentTarget.closest(".sequence-item");
@@ -695,6 +694,10 @@ function handleTouchStart(event) {
   }, LONG_PRESS_DELAY_MS);
 
   state.touchDrag = touchDrag;
+}
+
+function isTouchInteractiveElement(target) {
+  return Boolean(target.closest("button, select, input, textarea, a"));
 }
 
 function handleTouchMove(event) {
