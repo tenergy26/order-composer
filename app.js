@@ -94,7 +94,7 @@ const ORDERS = [
     name: "待ち",
     type: "その他",
     icon: "WT",
-    duration: 5,
+    duration: 10,
     wait: 0,
     color: "#a9b0c2",
   },
@@ -414,6 +414,7 @@ function renderFilters() {
 function getVisibleOrders() {
   const query = state.query.trim().toLowerCase();
   return ORDERS.filter((order) => {
+    if (order.id === WAIT_ORDER_ID) return false;
     const matchesCategory = state.filter === "すべて" || order.type === state.filter;
     const searchable = `${order.name} ${order.type}`.toLowerCase();
     return matchesCategory && searchable.includes(query);
