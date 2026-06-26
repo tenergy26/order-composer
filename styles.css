@@ -34,7 +34,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -602,7 +603,7 @@ h2 {
   display: none;
 }
 
-.assignee-field input {
+.assignee-field select {
   width: 6.5em;
   min-height: 28px;
   padding: 3px 7px;
@@ -613,11 +614,10 @@ h2 {
   background: var(--surface-3);
   font: inherit;
   font-size: 16px;
-  user-select: text !important;
-  -webkit-user-select: text !important;
+  cursor: pointer;
 }
 
-.assignee-field input:focus {
+.assignee-field select:focus {
   border-color: var(--item-color);
 }
 
@@ -753,7 +753,7 @@ footer {
     flex: 0 0 auto;
   }
 
-  .assignee-field input {
+  .assignee-field select {
     width: 100%;
     min-width: 0;
     flex: 1;

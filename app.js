@@ -107,6 +107,17 @@ const MATCH_DURATION_SECONDS = 15 * 60;
 const LONG_PRESS_DELAY_MS = 450;
 const LONG_PRESS_MOVE_TOLERANCE = 10;
 const ASSIGNEE_NAME_MAX_LENGTH = 4;
+const ASSIGNEE_OPTIONS = [
+  "とも",
+  "スット",
+  "くると",
+  "けん",
+  "いち",
+  "タルタル",
+  "ヴぇいn",
+  "おこめ",
+  "ベティ",
+];
 const STORAGE_KEY = "order-composer-sequence-v1";
 const ASSIGNEE_STORAGE_KEY = "order-composer-assignees-v2";
 const categories = [
@@ -229,8 +240,8 @@ function loadCompactSharedData() {
         continue;
       }
 
-      const main = mainIndex === 0 ? "" : names[mainIndex - 1];
-      const sub = subIndex === 0 ? "" : names[subIndex - 1];
+      const main = mainIndex === 0 ? "" : sanitizeAssigneeName(names[mainIndex - 1]);
+      const sub = subIndex === 0 ? "" : sanitizeAssigneeName(names[subIndex - 1]);
       if (main || sub) {
         assignees[entryId] = { main, sub };
       }
@@ -248,7 +259,7 @@ function createCompactSharedData() {
   const nameIndexes = new Map();
 
   const getNameIndex = (name) => {
-    const value = typeof name === "string" ? name.slice(0, ASSIGNEE_NAME_MAX_LENGTH) : "";
+    const value = sanitizeAssigneeName(name);
     if (!value) return 0;
     if (!nameIndexes.has(value)) {
       names.push(value);
@@ -314,16 +325,18 @@ function sanitizeAssignees(assignees) {
         entryId,
         {
           main:
-            typeof assignee.main === "string"
-              ? assignee.main.slice(0, ASSIGNEE_NAME_MAX_LENGTH)
-              : "",
+            sanitizeAssigneeName(assignee.main),
           sub:
-            typeof assignee.sub === "string"
-              ? assignee.sub.slice(0, ASSIGNEE_NAME_MAX_LENGTH)
-              : "",
+            sanitizeAssigneeName(assignee.sub),
         },
       ]),
   );
+}
+
+function sanitizeAssigneeName(name) {
+  if (typeof name !== "string") return "";
+  const value = name.slice(0, ASSIGNEE_NAME_MAX_LENGTH);
+  return ASSIGNEE_OPTIONS.includes(value) ? value : "";
 }
 
 function sanitizeIds(ids) {
@@ -510,29 +523,39 @@ function renderSequence() {
             shortLabel.className = "assignee-label assignee-label-short";
             shortLabel.textContent = shortLabelText;
 
-            const input = document.createElement("input");
-            input.type = "text";
-            input.maxLength = ASSIGNEE_NAME_MAX_LENGTH;
-            input.value = state.assignees[entryId]?.[key] ?? "";
-            input.setAttribute("aria-label", `${order.name}の${labelText.slice(0, -1)}`);
-            input.addEventListener("pointerdown", (event) => event.stopPropagation());
-            input.addEventListener("touchstart", (event) => event.stopPropagation());
-            input.addEventListener("selectstart", (event) => event.stopPropagation());
-            input.addEventListener("focus", () => {
+            const select = document.createElement("select");
+            select.setAttribute("aria-label", `${order.name}の${labelText.slice(0, -1)}`);
+
+            const emptyOption = document.createElement("option");
+            emptyOption.value = "";
+            emptyOption.textContent = "未選択";
+            select.append(emptyOption);
+
+            for (const assigneeName of ASSIGNEE_OPTIONS) {
+              const option = document.createElement("option");
+              option.value = assigneeName;
+              option.textContent = assigneeName;
+              select.append(option);
+            }
+
+            select.value = sanitizeAssigneeName(state.assignees[entryId]?.[key]);
+            select.addEventListener("pointerdown", (event) => event.stopPropagation());
+            select.addEventListener("touchstart", (event) => event.stopPropagation());
+            select.addEventListener("selectstart", (event) => event.stopPropagation());
+            select.addEventListener("focus", () => {
               item.draggable = false;
             });
-            input.addEventListener("blur", () => {
+            select.addEventListener("blur", () => {
               item.draggable = true;
             });
-            input.addEventListener("input", (event) => {
-              const value = event.target.value.slice(0, ASSIGNEE_NAME_MAX_LENGTH);
-              event.target.value = value;
+            select.addEventListener("change", (event) => {
+              const value = sanitizeAssigneeName(event.target.value);
               state.assignees[entryId] ??= { main: "", sub: "" };
               state.assignees[entryId][key] = value;
             });
 
             label.append(fullLabel, shortLabel);
-            label.append(input);
+            label.append(select);
             assigneeFields.append(label);
           }
 
