@@ -414,7 +414,6 @@ function renderFilters() {
 function getVisibleOrders() {
   const query = state.query.trim().toLowerCase();
   return ORDERS.filter((order) => {
-    if (order.id === WAIT_ORDER_ID) return false;
     const matchesCategory = state.filter === "すべて" || order.type === state.filter;
     const searchable = `${order.name} ${order.type}`.toLowerCase();
     return matchesCategory && searchable.includes(query);
